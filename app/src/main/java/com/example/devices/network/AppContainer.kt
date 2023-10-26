@@ -8,7 +8,7 @@ interface AppContainer{
     val deviceRepository: DeviceRepository
 }
 class DefaultAppContainer : AppContainer{
-    private val BASE_FASTHOME_URL = "https://api.fasthome.io/api/"
+    private val BASE_FASTHOME_URL = "https://api.fasthome.io/"
 
     private val gson = GsonBuilder()
         .setLenient()
