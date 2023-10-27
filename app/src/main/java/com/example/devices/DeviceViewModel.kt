@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.devices.model.Devices
 import com.example.devices.network.DeviceRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -39,6 +40,18 @@ class DeviceViewModel(private val deviceRepository: DeviceRepository) : ViewMode
             } catch (e: IOException) {
                 DeviceUiState.Error
             }
+        }
+    }
+
+    fun deleteDevice(id: Int){
+        viewModelScope.launch {
+            try{
+                deviceRepository.deleteDevice(id)
+                Log.d("$id", "DELETED")
+            } catch (e: HttpException){
+                Log.d("error $id", e.toString())
+            }
+            getDevices()
         }
     }
     companion object {
