@@ -8,4 +8,6 @@ interface DeviceRepository {
     suspend fun getAllDevices() : Devices
     suspend fun getDevice(id: Int) : Device
     suspend fun deleteDevice(id: Int) : Response<Unit>
+    suspend fun reset() : Response<Unit>
+
 }

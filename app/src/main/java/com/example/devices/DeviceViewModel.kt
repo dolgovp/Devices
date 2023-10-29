@@ -27,7 +27,20 @@ class DeviceViewModel(private val deviceRepository: DeviceRepository) : ViewMode
     val deviceUiState: StateFlow<DeviceUiState> = _deviceUiState
 
     init {
+        reset()
         getDevices()
+    }
+
+    private fun reset(){
+        try{
+            viewModelScope.launch {
+                deviceRepository.reset()
+            }
+        } catch (e: HttpException){
+            DeviceUiState.Error
+        } catch (e: IOException) {
+            DeviceUiState.Error
+        }
     }
     fun getDevices(){
         viewModelScope.launch{

@@ -5,6 +5,7 @@ import com.example.devices.model.Devices
 import retrofit2.Response
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.QueryName
@@ -22,6 +23,9 @@ interface ApiService {
     suspend fun deleteDevice(
         @Path("id") id: Int
     ) : Response<Unit>
+
+    @POST("api/v1/test/devices/reset-deleted")
+    suspend fun reset() : Response<Unit>
 
 
 }

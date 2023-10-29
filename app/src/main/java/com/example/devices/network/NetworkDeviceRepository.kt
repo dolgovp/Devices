@@ -12,5 +12,6 @@ class NetworkDeviceRepository(
     override suspend fun getDevice(id: Int): Device = apiService.getDevice(id)
 
     override suspend fun deleteDevice(id: Int) : Response<Unit> = apiService.deleteDevice(id)
+    override suspend fun reset(): Response<Unit> = apiService.reset()
 
 }
