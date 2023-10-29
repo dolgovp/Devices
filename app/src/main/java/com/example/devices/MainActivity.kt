@@ -42,12 +42,12 @@ class MainActivity : ComponentActivity() {
             DevicesTheme {
                 val deviceViewModel: DeviceViewModel =
                     viewModel(factory = DeviceViewModel.Factory)
-                val uiState = deviceViewModel.deviceUiState.collectAsState().value
+                val state = deviceViewModel.deviceUiState.collectAsState().value
                 Scaffold(
 
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-                        when(uiState){
+                        when(state.uiState){
                             is DeviceUiState.Loading -> TopAppBarLoading()
                             is DeviceUiState.Loaded -> TopAppBarLoaded()
                             is DeviceUiState.Error -> {}
@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
                     },
                     floatingActionButtonPosition = FabPosition.End,
                     floatingActionButton = {
-                        when(uiState){
+                        when(state.uiState){
                             is DeviceUiState.Loading -> FloatingLoading()
                             is DeviceUiState.Loaded -> FloatingLoaded(deviceViewModel)
                             is DeviceUiState.Error -> {}
@@ -69,8 +69,8 @@ class MainActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.background
                     ) {
                         HomeScreen(
-                            uiState = uiState,
-                            retryAction = { deviceViewModel.getDevices() },
+                            state = state,
+                            retryAction = { deviceViewModel.send(GetDevicesEvent()) },
                             viewModel = deviceViewModel
                         )
                     }

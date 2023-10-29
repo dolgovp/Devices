@@ -59,14 +59,14 @@ import java.util.Locale
 
 @Composable
 fun HomeScreen(
-    uiState: DeviceUiState,
+    state: MainState,
     retryAction: () -> Unit,
     viewModel: DeviceViewModel
 ){
-    when(uiState){
+    when(state.uiState){
         is DeviceUiState.Loading -> LoadingScreen()
-        is DeviceUiState.Error -> ErrorScreen(retryAction)
-        is DeviceUiState.Loaded -> DevicesScreen(uiState.devices.data, viewModel)
+        is DeviceUiState.Error -> ErrorScreen(retryAction, state.uiState.error)
+        is DeviceUiState.Loaded -> DevicesScreen(state.devices, viewModel)
     }
 }
 
@@ -84,13 +84,16 @@ fun LoadingScreen(){
 }
 
 @Composable
-fun ErrorScreen(retryAction: () -> Unit){
+fun ErrorScreen(
+    retryAction: () -> Unit,
+    error: Exception
+    ){
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Что-то пошло не так,\nошибка 123", textAlign = TextAlign.Center)
+        Text("Что-то пошло не так,\n $error", textAlign = TextAlign.Center)
         Spacer(Modifier.size(20.dp))
         Button(onClick = retryAction, colors = ButtonDefaults.buttonColors(
             containerColor = ButtonBlue,
@@ -133,7 +136,7 @@ fun DeviceCard(
     if (openAlertDialog.value){
         AlertDialogExample(
             onDismissRequest = { openAlertDialog.value = false},
-            onConfirmation = { deviceViewModel.deleteDevice(device.id) },
+            onConfirmation = { deviceViewModel.send(DeleteEvent(device.id)) },
             dialogText = "Вы хотите удалить ${device.name.lowercase()}?"
         )
     }

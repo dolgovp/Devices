@@ -246,7 +246,7 @@ fun Timer(time: Int){
 @Composable
 fun FloatingLoaded(deviceViewModel: DeviceViewModel){
     FloatingActionButton(
-        onClick = {deviceViewModel.getDevices()},
+        onClick = {deviceViewModel.send(GetDevicesEvent())},
         shape = RoundedCornerShape(50.dp),
         containerColor = Color.White
     ) {

@@ -12,59 +12,77 @@ import com.example.devices.network.DeviceRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 
 sealed interface DeviceUiState {
-    data class Loaded(val devices: Devices) : DeviceUiState
-    object Error : DeviceUiState
+    object Loaded : DeviceUiState
+    data class Error(val error: Exception) : DeviceUiState
     object Loading : DeviceUiState
 }
 class DeviceViewModel(private val deviceRepository: DeviceRepository) : ViewModel() {
 
-    private val _deviceUiState = MutableStateFlow<DeviceUiState>(DeviceUiState.Loading)
-    val deviceUiState: StateFlow<DeviceUiState> = _deviceUiState
+    private val _deviceUiState = MutableStateFlow(MainState(DeviceUiState.Loading))
+    val deviceUiState: StateFlow<MainState> = _deviceUiState
+
+
 
     init {
-        reset()
-        getDevices()
+        send(ResetEvent())
+        send(GetDevicesEvent())
+    }
+
+    fun send(event: MainEvent){
+        when(event){
+            is GetDevicesEvent -> getDevices()
+            is DeleteEvent -> deleteDevice(event.id)
+            is ResetEvent -> reset()
+        }
+
     }
 
     private fun reset(){
-        try{
-            viewModelScope.launch {
+        viewModelScope.launch {
+            _deviceUiState.value = MainState(DeviceUiState.Loading)
+            _deviceUiState.value = try{
                 deviceRepository.reset()
+                MainState(DeviceUiState.Loading)
+            } catch (e: HttpException){
+                MainState(DeviceUiState.Error(e))
+            } catch (e: IOException) {
+                MainState(DeviceUiState.Error(e))
             }
-        } catch (e: HttpException){
-            DeviceUiState.Error
-        } catch (e: IOException) {
-            DeviceUiState.Error
         }
+
     }
-    fun getDevices(){
+    private fun getDevices(){
         viewModelScope.launch{
-            _deviceUiState.value = DeviceUiState.Loading
+            _deviceUiState.value = MainState(DeviceUiState.Loading)
             _deviceUiState.value = try {
-                DeviceUiState.Loaded(deviceRepository.getAllDevices())
+                MainState(DeviceUiState.Loaded, deviceRepository.getAllDevices().data)
             } catch (e: HttpException){
                 Log.d("error", e.toString())
-                DeviceUiState.Error
+                MainState(DeviceUiState.Error(e))
             } catch (e: IOException) {
-                DeviceUiState.Error
+                MainState(DeviceUiState.Error(e))
             }
         }
     }
 
-    fun deleteDevice(id: Int){
+    private fun deleteDevice(id: Int){
         viewModelScope.launch {
-            try{
+            _deviceUiState.value = try{
                 deviceRepository.deleteDevice(id)
-                Log.d("$id", "DELETED")
+                //_deviceUiState.value.devices.removeIf{it.id == id}
+                getDevices()
+                MainState(DeviceUiState.Loaded, _deviceUiState.value.devices)
             } catch (e: HttpException){
-                Log.d("error $id", e.toString())
+                MainState(DeviceUiState.Error(e))
+            } catch (e: IOException) {
+                MainState(DeviceUiState.Error(e))
             }
-            getDevices()
         }
     }
     companion object {
